@@ -6,7 +6,7 @@
     "types": ["node", "jest"]
   },
   "include": [
-    "apps/backend/src/api/routes/author-studio.controller.ts",
+    "apps/backend/src/api/routes/author-studio*.controller.ts",
     "libraries/nestjs-libraries/src/author-studio/**/*.ts",
     "libraries/nestjs-libraries/src/database/prisma/author-studio/**/*.ts",
     "libraries/nestjs-libraries/src/dtos/author-studio/**/*.ts"

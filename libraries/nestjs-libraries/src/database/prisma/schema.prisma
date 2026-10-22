@@ -9,18 +9,18 @@ datasource db {
 }
 
 model Organization {
-  id                  String               @id @default(uuid())
+  id                  String                  @id @default(uuid())
   name                String
   description         String?
   apiKey              String?
   paymentId           String?
   streakSince         DateTime?
-  createdAt           DateTime             @default(now())
-  updatedAt           DateTime             @updatedAt
+  createdAt           DateTime                @default(now())
+  updatedAt           DateTime                @updatedAt
   deletedAt           DateTime?
-  allowTrial          Boolean              @default(false)
-  isTrailing          Boolean              @default(false)
-  shortlink           ShortLinkPreference  @default(ASK)
+  allowTrial          Boolean                 @default(false)
+  isTrailing          Boolean                 @default(false)
+  shortlink           ShortLinkPreference     @default(ASK)
   autoPost            AutoPost[]
   Comments            Comments[]
   credits             Credits[]
@@ -33,8 +33,8 @@ model Organization {
   buyerOrganization   MessagesGroup[]
   notifications       Notifications[]
   plugs               Plugs[]
-  post                Post[]               @relation("organization")
-  submittedPost       Post[]               @relation("submittedForOrg")
+  post                Post[]                  @relation("organization")
+  submittedPost       Post[]                  @relation("submittedForOrg")
   sets                Sets[]
   signatures          Signatures[]
   subscription        Subscription?
@@ -52,6 +52,11 @@ model Organization {
   bookSources         BookSource[]
   contentPillars      ContentPillar[]
   audienceAngles      AudienceAngle[]
+  campaigns           Campaign[]
+  campaignPillars     CampaignContentPillar[]
+  campaignAngles      CampaignAudienceAngle[]
+  campaignIdeas       CampaignIdea[]
+  campaignVariants    CampaignVariant[]
 
   @@index([apiKey])
   @@index([streakSince])
@@ -1783,6 +1788,7 @@ model PenName {
   books               Book[]
   contentPillars      ContentPillar[]
   audienceAngles      AudienceAngle[]
+  campaigns           Campaign[]
 
   @@unique([organizationId, slug])
   @@index([organizationId])
@@ -1828,6 +1834,7 @@ model Series {
   organization     Organization @relation(fields: [organizationId], references: [id])
   penName          PenName      @relation(fields: [penNameId], references: [id])
   books            Book[]
+  campaigns        Campaign[]
 
   @@unique([organizationId, penNameId, slug])
   @@index([organizationId])
@@ -1864,6 +1871,7 @@ model Book {
   penName         PenName      @relation(fields: [penNameId], references: [id])
   series          Series?      @relation(fields: [seriesId], references: [id])
   sources         BookSource[]
+  campaigns       Campaign[]
 
   @@index([organizationId])
   @@index([penNameId])
@@ -1896,19 +1904,20 @@ model BookSource {
 }
 
 model ContentPillar {
-  id             String       @id @default(uuid())
+  id             String                  @id @default(uuid())
   organizationId String
   penNameId      String
   name           String
   description    String?
   examples       Json
-  active         Boolean      @default(true)
-  sortOrder      Int          @default(0)
-  createdAt      DateTime     @default(now())
-  updatedAt      DateTime     @updatedAt
+  active         Boolean                 @default(true)
+  sortOrder      Int                     @default(0)
+  createdAt      DateTime                @default(now())
+  updatedAt      DateTime                @updatedAt
   deletedAt      DateTime?
-  organization   Organization @relation(fields: [organizationId], references: [id])
-  penName        PenName      @relation(fields: [penNameId], references: [id])
+  organization   Organization            @relation(fields: [organizationId], references: [id])
+  penName        PenName                 @relation(fields: [penNameId], references: [id])
+  campaignLinks  CampaignContentPillar[]
 
   @@unique([organizationId, penNameId, name])
   @@index([organizationId])
@@ -1918,7 +1927,7 @@ model ContentPillar {
 }
 
 model AudienceAngle {
-  id              String       @id @default(uuid())
+  id              String                  @id @default(uuid())
   organizationId  String
   penNameId       String
   name            String
@@ -1927,17 +1936,137 @@ model AudienceAngle {
   desiredReaction String?
   objections      Json
   platformNotes   Json
-  active          Boolean      @default(true)
-  createdAt       DateTime     @default(now())
-  updatedAt       DateTime     @updatedAt
+  active          Boolean                 @default(true)
+  createdAt       DateTime                @default(now())
+  updatedAt       DateTime                @updatedAt
   deletedAt       DateTime?
-  organization    Organization @relation(fields: [organizationId], references: [id])
-  penName         PenName      @relation(fields: [penNameId], references: [id])
+  organization    Organization            @relation(fields: [organizationId], references: [id])
+  penName         PenName                 @relation(fields: [penNameId], references: [id])
+  campaignLinks   CampaignAudienceAngle[]
 
   @@unique([organizationId, penNameId, name])
   @@index([organizationId])
   @@index([penNameId])
   @@index([active])
+  @@index([deletedAt])
+}
+
+model Campaign {
+  id                 String                  @id @default(uuid())
+  organizationId     String
+  penNameId          String
+  bookId             String?
+  seriesId           String?
+  name               String
+  type               CampaignType
+  objective          String
+  brief              String
+  startDate          DateTime?
+  endDate            DateTime?
+  status             CampaignStatus          @default(DRAFT)
+  targetPlatforms    Json
+  generationSettings Json
+  createdAt          DateTime                @default(now())
+  updatedAt          DateTime                @updatedAt
+  deletedAt          DateTime?
+  organization       Organization            @relation(fields: [organizationId], references: [id])
+  penName            PenName                 @relation(fields: [penNameId], references: [id])
+  book               Book?                   @relation(fields: [bookId], references: [id])
+  series             Series?                 @relation(fields: [seriesId], references: [id])
+  contentPillars     CampaignContentPillar[]
+  audienceAngles     CampaignAudienceAngle[]
+  ideas              CampaignIdea[]
+
+  @@index([organizationId])
+  @@index([penNameId])
+  @@index([bookId])
+  @@index([seriesId])
+  @@index([status])
+  @@index([deletedAt])
+}
+
+model CampaignContentPillar {
+  id              String        @id @default(uuid())
+  organizationId  String
+  campaignId      String
+  contentPillarId String
+  createdAt       DateTime      @default(now())
+  organization    Organization  @relation(fields: [organizationId], references: [id])
+  campaign        Campaign      @relation(fields: [campaignId], references: [id])
+  contentPillar   ContentPillar @relation(fields: [contentPillarId], references: [id])
+
+  @@unique([campaignId, contentPillarId])
+  @@index([organizationId])
+  @@index([contentPillarId])
+}
+
+model CampaignAudienceAngle {
+  id              String        @id @default(uuid())
+  organizationId  String
+  campaignId      String
+  audienceAngleId String
+  createdAt       DateTime      @default(now())
+  organization    Organization  @relation(fields: [organizationId], references: [id])
+  campaign        Campaign      @relation(fields: [campaignId], references: [id])
+  audienceAngle   AudienceAngle @relation(fields: [audienceAngleId], references: [id])
+
+  @@unique([campaignId, audienceAngleId])
+  @@index([organizationId])
+  @@index([audienceAngleId])
+}
+
+model CampaignIdea {
+  id                String             @id @default(uuid())
+  organizationId    String
+  campaignId        String
+  title             String
+  coreConcept       String
+  hook              String
+  creativeDirection String?
+  callToAction      String?
+  sourceRationale   Json
+  status            CampaignIdeaStatus @default(SHORTLISTED)
+  generationBatchId String?
+  createdAt         DateTime           @default(now())
+  updatedAt         DateTime           @updatedAt
+  deletedAt         DateTime?
+  organization      Organization       @relation(fields: [organizationId], references: [id])
+  campaign          Campaign           @relation(fields: [campaignId], references: [id])
+  variants          CampaignVariant[]
+
+  @@index([organizationId])
+  @@index([campaignId])
+  @@index([status])
+  @@index([generationBatchId])
+  @@index([deletedAt])
+}
+
+model CampaignVariant {
+  id                 String                @id @default(uuid())
+  organizationId     String
+  campaignIdeaId     String
+  platform           String
+  format             CampaignVariantFormat
+  content            String
+  headline           String?
+  callToAction       String?
+  hashtags           Json
+  mediaBrief         Json
+  platformSettings   Json
+  status             CampaignVariantStatus @default(EDITED)
+  model              String?
+  promptVersion      String?
+  generationMetadata Json
+  createdAt          DateTime              @default(now())
+  updatedAt          DateTime              @updatedAt
+  deletedAt          DateTime?
+  organization       Organization          @relation(fields: [organizationId], references: [id])
+  campaignIdea       CampaignIdea          @relation(fields: [campaignIdeaId], references: [id])
+
+  @@index([organizationId])
+  @@index([campaignIdeaId])
+  @@index([platform])
+  @@index([status])
   @@index([deletedAt])
 }
 
@@ -1961,6 +2090,51 @@ enum BookSourceKind {
 enum BookSourceStatus {
   ACTIVE
   ARCHIVED
+}
+
+enum CampaignType {
+  LAUNCH
+  PREORDER
+  BACKLIST
+  READER_MAGNET
+  SALE
+  EVERGREEN
+  CUSTOM
+}
+
+enum CampaignStatus {
+  DRAFT
+  GENERATING
+  REVIEW
+  ACTIVE
+  COMPLETE
+  ARCHIVED
+}
+
+enum CampaignIdeaStatus {
+  GENERATED
+  SHORTLISTED
+  REJECTED
+  ARCHIVED
+}
+
+enum CampaignVariantFormat {
+  TEXT
+  IMAGE_POST
+  CAROUSEL
+  SHORT_VIDEO
+  STORY
+  THREAD
+  PIN
+}
+
+enum CampaignVariantStatus {
+  GENERATED
+  EDITED
+  APPROVED
+  REJECTED
+  SENT_TO_COMPOSER
+  SCHEDULED
 }
 
 enum OrderStatus {

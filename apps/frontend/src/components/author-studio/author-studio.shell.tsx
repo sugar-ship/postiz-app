@@ -8,6 +8,7 @@ const sections = [
   { href: '/author-studio', label: 'Overview', key: 'overview' },
   { href: '/author-studio/pen-names', label: 'Pen Names', key: 'pen-names' },
   { href: '/author-studio/books', label: 'Books & Series', key: 'books' },
+  { href: '/author-studio/campaigns', label: 'Campaigns', key: 'campaigns' },
   {
     href: '/author-studio/content-pillars',
     label: 'Content Pillars',

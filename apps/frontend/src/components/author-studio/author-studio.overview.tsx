@@ -11,6 +11,11 @@ const resources = [
   { key: 'books', label: 'Books', href: '/author-studio/books' },
   { key: 'series', label: 'Series', href: '/author-studio/books' },
   {
+    key: 'campaigns',
+    label: 'Campaigns',
+    href: '/author-studio/campaigns',
+  },
+  {
     key: 'content-pillars',
     label: 'Content Pillars',
     href: '/author-studio/content-pillars',
@@ -57,8 +62,8 @@ export function AuthorStudioOverview() {
         ))}
       </div>
       <div className="bg-newBgColorInner border border-newTableBorder rounded-[12px] p-[20px]">
-        Campaign planning and AI generation are intentionally unavailable in
-        Milestone 1.
+        Campaign briefs, manual ideas, and reviewable platform variants are
+        available. AI generation and Postiz composer handoff remain disabled.
       </div>
     </AuthorStudioShell>
   );

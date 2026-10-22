@@ -102,3 +102,85 @@ export interface AudienceAngleRecord {
   active: boolean;
   penName?: PenNameRecord;
 }
+
+export type CampaignStatus =
+  | 'DRAFT'
+  | 'GENERATING'
+  | 'REVIEW'
+  | 'ACTIVE'
+  | 'COMPLETE'
+  | 'ARCHIVED';
+
+export interface CampaignRecord {
+  id: string;
+  penNameId: string;
+  bookId?: string | null;
+  seriesId?: string | null;
+  name: string;
+  type:
+    | 'LAUNCH'
+    | 'PREORDER'
+    | 'BACKLIST'
+    | 'READER_MAGNET'
+    | 'SALE'
+    | 'EVERGREEN'
+    | 'CUSTOM';
+  objective: string;
+  brief: string;
+  startDate?: string | null;
+  endDate?: string | null;
+  status: CampaignStatus;
+  targetPlatforms: string[];
+  generationSettings: Record<string, unknown>;
+  penName?: PenNameRecord;
+  book?: BookRecord | null;
+  series?: SeriesRecord | null;
+  contentPillars?: Array<{ contentPillar: ContentPillarRecord }>;
+  audienceAngles?: Array<{ audienceAngle: AudienceAngleRecord }>;
+  ideas?: CampaignIdeaRecord[];
+  _count?: { ideas: number };
+}
+
+export interface CampaignIdeaRecord {
+  id: string;
+  campaignId: string;
+  title: string;
+  coreConcept: string;
+  hook: string;
+  creativeDirection?: string | null;
+  callToAction?: string | null;
+  sourceRationale: Record<string, string>;
+  status: 'GENERATED' | 'SHORTLISTED' | 'REJECTED' | 'ARCHIVED';
+  generationBatchId?: string | null;
+  variants?: CampaignVariantRecord[];
+}
+
+export interface CampaignVariantRecord {
+  id: string;
+  campaignIdeaId: string;
+  platform: string;
+  format:
+    | 'TEXT'
+    | 'IMAGE_POST'
+    | 'CAROUSEL'
+    | 'SHORT_VIDEO'
+    | 'STORY'
+    | 'THREAD'
+    | 'PIN';
+  content: string;
+  headline?: string | null;
+  callToAction?: string | null;
+  hashtags: string[];
+  mediaBrief: Record<string, string>;
+  platformSettings: Record<string, string>;
+  status:
+    | 'GENERATED'
+    | 'EDITED'
+    | 'APPROVED'
+    | 'REJECTED'
+    | 'SENT_TO_COMPOSER'
+    | 'SCHEDULED';
+  model?: string | null;
+  promptVersion?: string | null;
+  generationMetadata: Record<string, unknown>;
+}

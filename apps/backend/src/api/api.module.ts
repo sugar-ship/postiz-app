@@ -57,6 +57,7 @@ import { WalletProvider } from '@gitroom/backend/services/auth/providers/wallet.
 import { OauthProvider } from '@gitroom/backend/services/auth/providers/oauth.provider';
 import { StripeController } from '@gitroom/backend/api/routes/stripe.controller';
 import { AuthorStudioController } from '@gitroom/backend/api/routes/author-studio.controller';
+import { AuthorStudioCampaignController } from '@gitroom/backend/api/routes/author-studio-campaign.controller';
 import { AuthorStudioEnabledGuard } from '@gitroom/nestjs-libraries/author-studio/author-studio-enabled.guard';
 
 const authenticatedController = [
@@ -81,6 +82,7 @@ const authenticatedController = [
   AnnouncementsController,
   AdminController,
   AuthorStudioController,
+  AuthorStudioCampaignController,
 ];
 @Module({
   imports: [UploadModule],

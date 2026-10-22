@@ -1,8 +1,13 @@
-# Author Studio: Milestone 1
+# Author Studio
 
 Milestone 1 adds the feature-flagged Author Library to Postiz. It intentionally
 stops at library records: Campaign, CampaignIdea, CampaignVariant, AI generation,
 and changes to Postiz's existing publishing features are not included.
+
+Milestone 2 adds manual campaign planning while keeping AI generation and
+native composer handoff out of scope. Its schema, API, state transitions,
+interface, data-safety notes, and validation are documented in
+[Author Studio campaigns](./CAMPAIGNS.md).
 
 ## Enable locally
 

@@ -265,6 +265,8 @@ workflows are expected.
 Milestone 1 setup, feature flags, schema application guidance, API/UI routes,
 and validation commands are documented in [Author Studio](./AUTHOR_STUDIO.md).
 Keep `AUTHOR_STUDIO_ENABLED=false` unless intentionally testing that feature.
+Manual campaign-planning setup and validation are documented in
+[Author Studio campaigns](./CAMPAIGNS.md).
 
 ## Local functional verification
 
