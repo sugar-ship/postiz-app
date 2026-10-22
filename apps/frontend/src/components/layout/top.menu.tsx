@@ -17,7 +17,7 @@ interface MenuItemInterface {
 }
 
 export const useMenuItem = () => {
-  const { isGeneral } = useVariables();
+  const { isGeneral, authorStudioEnabled } = useVariables();
   const t = useT();
 
   const firstMenu = [
@@ -41,6 +41,28 @@ export const useMenuItem = () => {
         </svg>
       ),
       path: '/launches',
+    },
+    {
+      name: 'Author Studio',
+      icon: (
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          width="22"
+          height="22"
+          viewBox="0 0 24 24"
+          fill="none"
+        >
+          <path
+            d="M4 19.5V5.8C4 4.81 4.81 4 5.8 4H18v14H5.5A1.5 1.5 0 0 0 4 19.5Zm0 0A1.5 1.5 0 0 0 5.5 21H19V7M8 8h6M8 12h6"
+            stroke="currentColor"
+            strokeWidth="1.7"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+        </svg>
+      ),
+      path: '/author-studio',
+      hide: !authorStudioEnabled,
     },
     {
       name: 'Agent',

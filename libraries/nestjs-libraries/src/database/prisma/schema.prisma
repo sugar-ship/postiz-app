@@ -45,6 +45,13 @@ model Organization {
   webhooks            Webhooks[]
   oauthApp            OAuthApp[]
   oauthAuthorizations OAuthAuthorization[]
+  penNames            PenName[]
+  brandProfiles       BrandProfile[]
+  authorSeries        Series[]
+  authorBooks         Book[]
+  bookSources         BookSource[]
+  contentPillars      ContentPillar[]
+  audienceAngles      AudienceAngle[]
 
   @@index([apiKey])
   @@index([streakSince])
@@ -1756,6 +1763,204 @@ model OAuthSelfHostedAuthorization {
   @@index([accessToken])
   @@index([authorizationCode])
   @@index([oauthAppId])
+}
+
+model PenName {
+  id                  String          @id @default(uuid())
+  organizationId      String
+  name                String
+  slug                String
+  description         String?
+  websiteUrl          String?
+  defaultCallToAction String?
+  active              Boolean         @default(true)
+  createdAt           DateTime        @default(now())
+  updatedAt           DateTime        @updatedAt
+  deletedAt           DateTime?
+  organization        Organization    @relation(fields: [organizationId], references: [id])
+  brandProfile        BrandProfile?
+  series              Series[]
+  books               Book[]
+  contentPillars      ContentPillar[]
+  audienceAngles      AudienceAngle[]
+
+  @@unique([organizationId, slug])
+  @@index([organizationId])
+  @@index([active])
+  @@index([deletedAt])
+}
+
+model BrandProfile {
+  id                String       @id @default(uuid())
+  organizationId    String
+  penNameId         String       @unique
+  voiceSummary      String
+  toneRules         Json
+  preferredLanguage Json
+  avoidLanguage     Json
+  formattingRules   Json
+  examples          Json
+  contentBoundaries Json
+  version           Int          @default(1)
+  createdAt         DateTime     @default(now())
+  updatedAt         DateTime     @updatedAt
+  deletedAt         DateTime?
+  organization      Organization @relation(fields: [organizationId], references: [id])
+  penName           PenName      @relation(fields: [penNameId], references: [id])
+
+  @@index([organizationId])
+  @@index([deletedAt])
+}
+
+model Series {
+  id               String       @id @default(uuid())
+  organizationId   String
+  penNameId        String
+  name             String
+  slug             String
+  description      String?
+  genre            String?
+  audience         String?
+  seriesOrderNotes String?
+  createdAt        DateTime     @default(now())
+  updatedAt        DateTime     @updatedAt
+  deletedAt        DateTime?
+  organization     Organization @relation(fields: [organizationId], references: [id])
+  penName          PenName      @relation(fields: [penNameId], references: [id])
+  books            Book[]
+
+  @@unique([organizationId, penNameId, slug])
+  @@index([organizationId])
+  @@index([penNameId])
+  @@index([deletedAt])
+}
+
+model Book {
+  id              String       @id @default(uuid())
+  organizationId  String
+  penNameId       String
+  seriesId        String?
+  title           String
+  subtitle        String?
+  seriesNumber    Int?
+  status          BookStatus   @default(IDEA)
+  releaseDate     DateTime?
+  buyUrl          String?
+  readerMagnetUrl String?
+  blurb           String?
+  shortPitch      String?
+  tropes          Json
+  themes          Json
+  hooks           Json
+  characters      Json
+  audience        Json
+  tone            Json
+  contentWarnings Json
+  marketingNotes  String?
+  createdAt       DateTime     @default(now())
+  updatedAt       DateTime     @updatedAt
+  deletedAt       DateTime?
+  organization    Organization @relation(fields: [organizationId], references: [id])
+  penName         PenName      @relation(fields: [penNameId], references: [id])
+  series          Series?      @relation(fields: [seriesId], references: [id])
+  sources         BookSource[]
+
+  @@index([organizationId])
+  @@index([penNameId])
+  @@index([seriesId])
+  @@index([status])
+  @@index([deletedAt])
+}
+
+model BookSource {
+  id             String           @id @default(uuid())
+  organizationId String
+  bookId         String
+  kind           BookSourceKind   @default(OTHER)
+  title          String
+  content        String
+  mediaId        String?
+  checksum       String?
+  status         BookSourceStatus @default(ACTIVE)
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
+  deletedAt      DateTime?
+  organization   Organization     @relation(fields: [organizationId], references: [id])
+  book           Book             @relation(fields: [bookId], references: [id])
+
+  @@index([organizationId])
+  @@index([bookId])
+  @@index([kind])
+  @@index([status])
+  @@index([deletedAt])
+}
+
+model ContentPillar {
+  id             String       @id @default(uuid())
+  organizationId String
+  penNameId      String
+  name           String
+  description    String?
+  examples       Json
+  active         Boolean      @default(true)
+  sortOrder      Int          @default(0)
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+  deletedAt      DateTime?
+  organization   Organization @relation(fields: [organizationId], references: [id])
+  penName        PenName      @relation(fields: [penNameId], references: [id])
+
+  @@unique([organizationId, penNameId, name])
+  @@index([organizationId])
+  @@index([penNameId])
+  @@index([active])
+  @@index([deletedAt])
+}
+
+model AudienceAngle {
+  id              String       @id @default(uuid())
+  organizationId  String
+  penNameId       String
+  name            String
+  description     String?
+  readerNeed      String?
+  desiredReaction String?
+  objections      Json
+  platformNotes   Json
+  active          Boolean      @default(true)
+  createdAt       DateTime     @default(now())
+  updatedAt       DateTime     @updatedAt
+  deletedAt       DateTime?
+  organization    Organization @relation(fields: [organizationId], references: [id])
+  penName         PenName      @relation(fields: [penNameId], references: [id])
+
+  @@unique([organizationId, penNameId, name])
+  @@index([organizationId])
+  @@index([penNameId])
+  @@index([active])
+  @@index([deletedAt])
+}
+
+enum BookStatus {
+  IDEA
+  PREORDER
+  LIVE
+  BACKLIST
+  ARCHIVED
+}
+
+enum BookSourceKind {
+  EXCERPT
+  MANUSCRIPT
+  REVIEW
+  CHARACTER_NOTE
+  WORLD_NOTE
+  OTHER
+}
+
+enum BookSourceStatus {
+  ACTIVE
+  ARCHIVED
 }
 
 enum OrderStatus {

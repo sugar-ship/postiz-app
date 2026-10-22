@@ -9,9 +9,14 @@ change the Prisma schema, or remove existing Postiz features.
 
 - Repository: `https://github.com/gitroomhq/postiz-app.git`
 - Baseline branch: `main`
-- Baseline commit: `2a46d88cf3b037ffefcf983118d7e55ebd40e3be`
-- Commit date: `2026-09-30T08:17:33Z`
-- Commit subject: `Merge pull request #2184 from gitroomhq/chore/claude-md-shared-data-rules-main`
+- Milestone 1 implementation baseline:
+  `c06abc3d786b8f719ced5716ccc70dd8a7251a05`
+- Baseline commit date: `2026-10-21T10:47:02Z`
+- Baseline commit subject:
+  `Merge pull request #2303 from gitroomhq/fix/finish-trial-wording`
+- Initial Milestone 0 inspection baseline:
+  `2a46d88cf3b037ffefcf983118d7e55ebd40e3be` (the canonical branch was
+  fast-forwarded before the Milestone 0 documentation commit was created)
 - Local checkout: `/Users/tiffanybray/Documents/Codex/postiz-app`
 
 The canonical repository is configured as `upstream`:
@@ -22,11 +27,13 @@ git remote -v
 # upstream https://github.com/gitroomhq/postiz-app.git (push)
 ```
 
-There is deliberately no `origin`: no user-fork URL was supplied. After a fork
-exists, add it without changing `upstream`:
+The personal fork is now configured as `origin` while the canonical repository
+remains `upstream`:
 
 ```bash
-git remote add origin git@github.com:<owner>/postiz-app.git
+git remote -v
+# origin   https://github.com/sugar-ship/postiz-app.git (fetch/push)
+# upstream https://github.com/gitroomhq/postiz-app.git (fetch/push)
 git fetch --all --prune
 ```
 
@@ -43,15 +50,15 @@ git switch -c <work-branch>
 
 The versions below come from the repository rather than global defaults.
 
-| Dependency | Required/tested | Purpose |
-| --- | --- | --- |
-| Node.js | `>=22.12.0 <23.0.0`; tested `22.20.0` | application runtime |
-| pnpm | exactly `10.6.1` via Corepack | workspace dependencies/scripts |
-| PostgreSQL | repository Compose image `17-alpine` | primary database |
-| Redis | repository Compose image `7-alpine`; tested `7.4.0` | queues/cache |
-| Temporal | repository Compose image `1.28.1`; fallback CLI `1.9.1` / server `1.32.0` | workflows |
-| Docker + Compose | recommended | starts PostgreSQL, Redis, Temporal, Elasticsearch and local admin UIs |
-| Git | tested `2.50.1` | source control |
+| Dependency       | Required/tested                                                           | Purpose                                                               |
+| ---------------- | ------------------------------------------------------------------------- | --------------------------------------------------------------------- |
+| Node.js          | `>=22.12.0 <23.0.0`; tested `22.20.0`                                     | application runtime                                                   |
+| pnpm             | exactly `10.6.1` via Corepack                                             | workspace dependencies/scripts                                        |
+| PostgreSQL       | repository Compose image `17-alpine`                                      | primary database                                                      |
+| Redis            | repository Compose image `7-alpine`; tested `7.4.0`                       | queues/cache                                                          |
+| Temporal         | repository Compose image `1.28.1`; fallback CLI `1.9.1` / server `1.32.0` | workflows                                                             |
+| Docker + Compose | recommended                                                               | starts PostgreSQL, Redis, Temporal, Elasticsearch and local admin UIs |
+| Git              | tested `2.50.1`                                                           | source control                                                        |
 
 Expected local ports are frontend `4200`, backend `3000`, orchestrator health
 `3002`, PostgreSQL `5432`, Redis `6379`, and Temporal `7233`. The normal
@@ -188,6 +195,19 @@ It reports PostgreSQL 17.5 through the wire protocol, but its socket server
 multiplexes connections and is not a full production PostgreSQL substitute.
 Use the Compose PostgreSQL 17 service on a normal workstation.
 
+During Milestone 1 CRUD validation, the PGlite socket adapter also reused a
+prepared-statement name across multiplexed connections (`prepared statement
+"s1" already exists`). Restricting this fallback runtime to one connection and
+enabling Prisma's PgBouncer compatibility mode resolved it:
+
+```text
+connection_limit=1&pgbouncer=true
+```
+
+Append those query parameters to `DATABASE_URL` only for this PGlite fallback.
+The actual connection string contains a local secret and must not be printed or
+committed. The standard Compose PostgreSQL service does not need this setting.
+
 ### Application processes
 
 The standard `pnpm run dev` was attempted first. Running four large watch
@@ -240,17 +260,23 @@ checked-in `.swcrc`: `jsc.baseUrl` was hard-coded to
 workers reached `RUNNING`; warnings that some queues have no registered
 workflows are expected.
 
+## Author Studio development
+
+Milestone 1 setup, feature flags, schema application guidance, API/UI routes,
+and validation commands are documented in [Author Studio](./AUTHOR_STUDIO.md).
+Keep `AUTHOR_STUDIO_ENABLED=false` unless intentionally testing that feature.
+
 ## Local functional verification
 
 The following was exercised in the unmodified application UI:
 
-| Check | Result |
-| --- | --- |
-| Local registration | Passed; with no mail provider configured, the local account was active immediately |
-| Login through `/auth/login` | Passed; redirected to `/launches` |
-| Calendar | Passed; weekly calendar rendered for 2026-09-28 through 2026-10-04 |
-| Native post composer | Passed; opened with **Create Post** |
-| Draft creation | Passed; **Save as draft** added the draft to the calendar |
+| Check                       | Result                                                                             |
+| --------------------------- | ---------------------------------------------------------------------------------- |
+| Local registration          | Passed; with no mail provider configured, the local account was active immediately |
+| Login through `/auth/login` | Passed; redirected to `/launches`                                                  |
+| Calendar                    | Passed; weekly calendar rendered for 2026-09-28 through 2026-10-04                 |
+| Native post composer        | Passed; opened with **Create Post**                                                |
+| Draft creation              | Passed; **Save as draft** added the draft to the calendar                          |
 
 No real social credentials were available. To exercise Postiz's native
 composer and draft persistence without publishing, one local test integration
@@ -304,18 +330,18 @@ coverage but do not replace a full build in CI.
 
 ## Failures and unresolved constraints
 
-| Attempt/failure | Resolution or current status |
-| --- | --- |
-| Homebrew Node/Docker/Colima install had no Intel macOS 26 bottles | Used official native archives |
-| Docker Desktop DMG mount failed with `Device not configured`; package install needed protected `/Library` writes | Docker remains unavailable in this sandbox |
-| Colima/Lima VZ reported virtualization unavailable | Nested virtualization is unavailable |
-| Native PostgreSQL `initdb` hit sandbox-denied System V shared memory | Used disposable PGlite; use real PostgreSQL 17 outside the sandbox |
-| Dependency postinstall could not write the user cache | Set `XDG_CACHE_HOME` inside the writable work directory |
-| Combined watch mode hit `EMFILE` | Ran services independently with frontend polling |
-| Backend runtime followed a declaration-file-only LangGraph alias | Used an outside-repository runtime tsconfig that lets Node resolve the package |
-| Orchestrator SWC used a developer-specific absolute path and lacked its own alias | Applied the two portable local-development config fixes described above |
-| Full production build did not finish within the shared-host window | Rerun `pnpm run build` on a normally provisioned host or CI |
-| External provider connection and publishing | Not tested: no credentials, and publishing is outside Milestone 0 |
+| Attempt/failure                                                                                                  | Resolution or current status                                                   |
+| ---------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------ |
+| Homebrew Node/Docker/Colima install had no Intel macOS 26 bottles                                                | Used official native archives                                                  |
+| Docker Desktop DMG mount failed with `Device not configured`; package install needed protected `/Library` writes | Docker remains unavailable in this sandbox                                     |
+| Colima/Lima VZ reported virtualization unavailable                                                               | Nested virtualization is unavailable                                           |
+| Native PostgreSQL `initdb` hit sandbox-denied System V shared memory                                             | Used disposable PGlite; use real PostgreSQL 17 outside the sandbox             |
+| Dependency postinstall could not write the user cache                                                            | Set `XDG_CACHE_HOME` inside the writable work directory                        |
+| Combined watch mode hit `EMFILE`                                                                                 | Ran services independently with frontend polling                               |
+| Backend runtime followed a declaration-file-only LangGraph alias                                                 | Used an outside-repository runtime tsconfig that lets Node resolve the package |
+| Orchestrator SWC used a developer-specific absolute path and lacked its own alias                                | Applied the two portable local-development config fixes described above        |
+| Full production build did not finish within the shared-host window                                               | Rerun `pnpm run build` on a normally provisioned host or CI                    |
+| External provider connection and publishing                                                                      | Not tested: no credentials, and publishing is outside Milestone 0              |
 
 ## Milestone boundary
 

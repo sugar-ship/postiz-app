@@ -56,6 +56,8 @@ import { FarcasterProvider } from '@gitroom/backend/services/auth/providers/farc
 import { WalletProvider } from '@gitroom/backend/services/auth/providers/wallet.provider';
 import { OauthProvider } from '@gitroom/backend/services/auth/providers/oauth.provider';
 import { StripeController } from '@gitroom/backend/api/routes/stripe.controller';
+import { AuthorStudioController } from '@gitroom/backend/api/routes/author-studio.controller';
+import { AuthorStudioEnabledGuard } from '@gitroom/nestjs-libraries/author-studio/author-studio-enabled.guard';
 
 const authenticatedController = [
   UsersController,
@@ -78,6 +80,7 @@ const authenticatedController = [
   OAuthAuthorizedController,
   AnnouncementsController,
   AdminController,
+  AuthorStudioController,
 ];
 @Module({
   imports: [UploadModule],
@@ -125,6 +128,7 @@ const authenticatedController = [
     FarcasterProvider,
     WalletProvider,
     OauthProvider,
+    AuthorStudioEnabledGuard,
   ],
   get exports() {
     return [...this.imports, ...this.providers];
